@@ -1,0 +1,122 @@
+# .github/workflows/qb-build-kafka.yml
+name: Build .tgz for Apache Kafka
+run-name: "Image for ${{ github.event.repository.name }}: ${{ github.run_number }} - ${{ github.actor }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      kafka-tag:
+        description: "Kafka tag to build"
+        required: true
+        default: "3.9.1"
+      tag:
+        description: "Tag to create (default: v1.0.0)"
+        required: false
+        default: "kafka-3.9.1-patched"
+      forceCreate:
+        type: boolean
+        description: "Override tag name (default: true)"
+        required: false
+        default: true
+      scalaVersion:
+        description: "Scala version to use (default: 2.13.16)"
+        required: false
+        default: "2.13.16"
+      javaVersion:
+        description: "Java version to use (default: 17)"
+        required: false
+        default: "17"
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create a New Tag
+        uses: netcracker/qubership-workflow-hub/actions/tag-action@main
+        with:
+          ref: ${{ github.ref_name }}
+          tag-name: ${{ inputs.tag }}
+          force-create: ${{ inputs.forceCreate }}
+          switch-to-tag: true
+          create-release: true
+          skip-checkout: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup
+        run: |
+          rm -rf ./*
+
+      - name: Checkout kafka tag ${{ inputs.kafka-tag }}
+        uses: actions/checkout@v4
+        with:
+          repository: apache/kafka
+          ref: ${{ inputs.kafka-tag }}
+
+      - name: Checkout kafka-patches tag ${{ inputs.tag }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+          path: kafka-patches
+
+      - name: Apply patches
+        run: |
+          cd ${GITHUB_WORKSPACE}
+          for p in ./kafka-patches/kafka-patches/${{ inputs.kafka-tag }}/*.patch; do
+            echo "Applying $p…"
+            git apply -p1 --ignore-space-change --ignore-whitespace "$p"
+          done
+          rm -rf ./kafka-patches
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.javaVersion }}
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Build and test (skip Spotless and RAT)
+        run: |
+          ./gradlew clean -x spotlessCheck -x rat -x test check releaseTarGz \
+            -PscalaVersion=${{ inputs.scalaVersion }} \
+            --warning-mode all \
+            --stacktrace
+
+      - name: Upload Kafka distribution
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kafka-distribution
+          path: core/build/distributions/*.tgz
+
+      - name: "Upload assets"
+        uses: netcracker/qubership-workflow-hub/actions/assets-action@main
+        with:
+          tag: ${{ inputs.tag }}
+          item-path: core/build/distributions/*.tgz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload failed test report
+        if: failure() # Выполнится только если шаг выше завершился ошибкой
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-test-report
+          path: core/build/reports/tests/test/

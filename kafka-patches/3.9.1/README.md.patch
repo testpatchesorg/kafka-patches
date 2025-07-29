@@ -1,0 +1,11 @@
+diff --git a/README.md b/README.md
+index 7bacfee75d..99d8c4642e 100644
+--- a/README.md
++++ b/README.md
+@@ -315,3 +315,6 @@ Apache Kafka is interested in building the community; we would welcome any thoug
+ 
+ To contribute follow the instructions here:
+  * https://kafka.apache.org/contributing.html 
++
++
++Change to test patches application
