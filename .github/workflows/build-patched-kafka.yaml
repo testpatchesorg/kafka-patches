@@ -28,6 +28,8 @@ on:
         default: "17"
 permissions:
   contents: write
+  actions: write
+  packages: write
 
 jobs:
   build:
