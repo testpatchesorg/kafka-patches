@@ -132,7 +132,7 @@ jobs:
 
       - name: Get kafka distribution artifact
         run: |
-          KAFKA_DISTRO=$(find core/build/distributions/ -name "kafka_[0-9.-]*.tgz" | head -n 1 | xargs -I {} basename {})
+          KAFKA_DISTRO=$(find core/build/distributions/ -name "kafka_[-0-9.]*.tgz" | head -n 1 | xargs -I {} basename {})
           if [ -f "$KAFKA_DISTRO" ]; then
             echo "Found Kafka distribution: $KAFKA_DISTRO"
             echo "KAFKA_DISTRO=$KAFKA_DISTRO" >> $GITHUB_ENV
