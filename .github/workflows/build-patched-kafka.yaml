@@ -28,6 +28,8 @@ on:
         default: "17"
 permissions:
   contents: write
+  actions: write
+  packages: write
 
 jobs:
   build:
@@ -39,13 +41,14 @@ jobs:
           fetch-depth: 0
 
       - name: Create a New Tag
-        uses: netcracker/qubership-workflow-hub/actions/tag-action@main
+        uses: netcracker/qubership-workflow-hub/actions/tag-action@v1.0.7
         with:
           ref: ${{ github.ref_name }}
           tag-name: ${{ inputs.tag }}
           force-create: ${{ inputs.forceCreate }}
           switch-to-tag: true
           create-release: true
+          draft-release: false
           skip-checkout: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -120,3 +123,23 @@ jobs:
         with:
           name: core-test-report
           path: core/build/reports/tests/test/
+
+      - name: Get kafka distribution artifact
+        run: |
+          KAFKA_DISTRO=$(find core/build/distributions/ -regextype posix-extended -regex '.*/kafka_[0-9.-]+\.tgz' | head -n 1 | xargs -I {} basename {})
+          if [ -f "core/build/distributions/$KAFKA_DISTRO" ]; then
+            echo "Found Kafka distribution: $KAFKA_DISTRO"
+            echo "KAFKA_DISTRO=$KAFKA_DISTRO" >> $GITHUB_ENV
+          else
+            echo "Kafka distribution not found!"
+            exit 1
+          fi
+      - name: Trigger Qubership Kafka Docker Build
+        uses: netcracker/qubership-workflow-hub/actions/custom-event@v1.0.7
+        with:
+          github-token: ${{ secrets.GH_ACCESS_TOKEN }}
+          owner: ${{ github.repository_owner }}
+          repo: qubership-kafka
+          event-type: kafka-patched-build
+          client-payload: '{"kafka-version": "${{ inputs.kafka-tag }}", "scala-version": "${{ inputs.scalaVersion }}", "javaVersion": "${{ inputs.javaVersion }}", "kafka-distro": "${{ env.KAFKA_DISTRO }}", "kafka-distro-url": "https://github.com/${{ github.repository_owner }}/kafka-patches/releases/download/${{ inputs.tag }}/${{ env.KAFKA_DISTRO }}"}'
+
