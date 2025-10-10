@@ -26,6 +26,10 @@ on:
         description: "Java version to use (default: 17)"
         required: false
         default: "17"
+      target-ref:
+        description: "Target branch in qubership-kafka repo (default: main)"
+        required: true
+        default: "main"
 permissions:
   contents: write
   actions: write
@@ -141,5 +145,5 @@ jobs:
           owner: ${{ github.repository_owner }}
           repo: qubership-kafka
           event-type: kafka-patched-build
-          client-payload: '{"kafka-version": "${{ inputs.kafka-tag }}", "scala-version": "${{ inputs.scalaVersion }}", "javaVersion": "${{ inputs.javaVersion }}", "kafka-distro": "${{ env.KAFKA_DISTRO }}", "kafka-distro-url": "https://github.com/${{ github.repository_owner }}/kafka-patches/releases/download/${{ inputs.tag }}/${{ env.KAFKA_DISTRO }}"}'
+          client-payload: '{"kafka-version": "${{ inputs.kafka-tag }}", "scala-version": "${{ inputs.scalaVersion }}", "javaVersion": "${{ inputs.javaVersion }}", "kafka-distro": "${{ env.KAFKA_DISTRO }}", "kafka-distro-url": "https://github.com/${{ github.repository_owner }}/kafka-patches/releases/download/${{ inputs.tag }}/${{ env.KAFKA_DISTRO }}", "target-ref": "${{ inputs.target-ref }}"}'
 
