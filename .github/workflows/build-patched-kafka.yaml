@@ -30,6 +30,11 @@ on:
       #   description: "Target branch in qubership-kafka repo (default: main)"
       #   required: true
       #   default: "main"
+      replace-symbol:
+        description: "Symbol to change '/' in ref name to"
+        required: true
+        default: "_"
+
 permissions:
   contents: write
   actions: write
@@ -145,4 +150,4 @@ jobs:
           owner: ${{ github.repository_owner }}
           repo: qubership-kafka
           event-type: kafka-patched-build
-          client-payload: '{"kafka-version": "${{ inputs.kafka-tag }}", "scala-version": "${{ inputs.scalaVersion }}", "javaVersion": "${{ inputs.javaVersion }}", "kafka-distro": "${{ env.KAFKA_DISTRO }}", "kafka-distro-url": "https://github.com/${{ github.repository_owner }}/kafka-patches/releases/download/${{ inputs.tag }}/${{ env.KAFKA_DISTRO }}", "target-ref": "main"}'
+          client-payload: '{"kafka-version": "${{ inputs.kafka-tag }}", "scala-version": "${{ inputs.scalaVersion }}", "javaVersion": "${{ inputs.javaVersion }}", "kafka-distro": "${{ env.KAFKA_DISTRO }}", "kafka-distro-url": "https://github.com/${{ github.repository_owner }}/kafka-patches/releases/download/${{ inputs.tag }}/${{ env.KAFKA_DISTRO }}", "target-ref": "main", "replace-symbol": "${{ inputs.replace-symbol }}"}'
