@@ -1,6 +1,6 @@
 # .github/workflows/qb-build-kafka.yml
 name: Build .tgz for Apache Kafka
-run-name: "Image for ${{ github.event.repository.name }}: ${{ inputs.kafka-tag }}"
+run-name: "Image for ${{ github.event.repository.name }}: ${{ github.run_number }} - ${{ github.actor }}"
 
 on:
   workflow_dispatch:
@@ -26,15 +26,15 @@ on:
         description: "Java version to use (default: 17)"
         required: false
         default: "17"
-      # target-ref:
-      #   description: "Target branch in qubership-kafka repo (default: main)"
-      #   required: true
-      #   default: "main"
+      target-ref:
+        description: "Target branch in qubership-kafka repo (default: main)"
+        required: true
+        default: "main"
       replace-symbol:
         description: "Symbol to change '/' in ref name to"
         required: true
         default: "_"
-
+        
 permissions:
   contents: write
   actions: write
@@ -150,4 +150,5 @@ jobs:
           owner: ${{ github.repository_owner }}
           repo: qubership-kafka
           event-type: kafka-patched-build
-          client-payload: '{"kafka-version": "${{ inputs.kafka-tag }}", "scala-version": "${{ inputs.scalaVersion }}", "javaVersion": "${{ inputs.javaVersion }}", "kafka-distro": "${{ env.KAFKA_DISTRO }}", "kafka-distro-url": "https://github.com/${{ github.repository_owner }}/kafka-patches/releases/download/${{ inputs.tag }}/${{ env.KAFKA_DISTRO }}", "target-ref": "main", "replace-symbol": "${{ inputs.replace-symbol }}"}'
+          client-payload: '{"kafka-version": "${{ inputs.kafka-tag }}", "scala-version": "${{ inputs.scalaVersion }}", "javaVersion": "${{ inputs.javaVersion }}", "kafka-distro": "${{ env.KAFKA_DISTRO }}", "kafka-distro-url": "https://github.com/${{ github.repository_owner }}/kafka-patches/releases/download/${{ inputs.tag }}/${{ env.KAFKA_DISTRO }}", "target-ref": "${{ inputs.target-ref }}", "replace-symbol": "${{ inputs.replace-symbol }}", "tag": "${{ inputs.tag }}", "repo":"${{ github.repository }}"}'
+
