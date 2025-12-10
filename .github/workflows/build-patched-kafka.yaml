@@ -1,8 +1,8 @@
 # .github/workflows/qb-build-kafka.yml
 name: Build .tgz for Apache Kafka
 run-name: |
-  Kafka: ${{ inputs.kafka-tag }}
-  Release tag: ${{ inputs.tag }}
+  Kafka: ${{ inputs.kafka-tag }} ||
+  Release tag: ${{ inputs.tag }} ||
   Qubership-kafka target branch: ${{ inputs.target-ref }}
 
 on:
@@ -154,5 +154,6 @@ jobs:
           repo: qubership-kafka
           event-type: kafka-patched-build
           client-payload: '{"kafka-version": "${{ inputs.kafka-tag }}", "scala-version": "${{ inputs.scalaVersion }}", "javaVersion": "${{ inputs.javaVersion }}", "kafka-distro": "${{ env.KAFKA_DISTRO }}", "kafka-distro-url": "https://github.com/${{ github.repository_owner }}/kafka-patches/releases/download/${{ inputs.tag }}/${{ env.KAFKA_DISTRO }}", "target-ref": "${{ inputs.target-ref }}", "replace-symbol": "${{ inputs.replace-symbol }}", "tag": "${{ inputs.tag }}", "repo":"${{ github.repository }}"}'
+
 
 
